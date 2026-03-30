@@ -6,21 +6,31 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="container" style="padding: 10px;">
+    <div id="container">
         <h3>Project Staffing</h3>
-        <table id="staffing-table" class="aui">
+        <table id="staffing-table">
             <thead>
                 <tr>
                     <th>User</th>
-                    <th>Alloc %</th>
+                    <th>%</th>
                 </tr>
             </thead>
             <tbody id="rows">
-                </tbody>
+                <tr class="staff-row">
+                    <td>
+                        <select class="user-select">
+                            <option>Loading...</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" class="percent-input" value="100">
+                    </td>
+                </tr>
+            </tbody>
         </table>
-        <div style="margin-top: 10px;">
-            <button id="add-row" class="aui-button">+ Add Resource</button>
-            <button id="save-btn" class="aui-button aui-button-primary">Save to Assets</button>
+        <div class="button-group">
+            <button id="add-row" class="aui-button">Add</button>
+            <button id="save-btn" class="aui-button-primary">Save</button>
         </div>
     </div>
     <script src="script.js"></script>
