@@ -1,38 +1,36 @@
-// 1. Tell Jira to make the sidebar box as long as the content
-function setHeight() {
-    if (window.AP) {
-        AP.resize('100%', '600px'); // Forces it to be 600px tall instead of a tiny box
-    }
+// 1. Force the sidebar to be 600px tall (No more tiny scroll box!)
+if (window.AP) {
+    AP.resize('100%', '600px'); 
 }
 
-// 2. Load the users
-function loadUsers() {
-    console.log("Fetching Arrow Schema users...");
-    
-    AP.request({
-        // Updated URL to the most direct Assets AQL endpoint
-        url: '/rest/assets/1.0/object/navlist/aql?ql=objectType = "users"',
-        type: 'GET',
-        success: function(responseText) {
-            const data = JSON.parse(responseText);
-            const selects = document.querySelectorAll('.user-select');
-            
-            selects.forEach(select => {
-                select.innerHTML = '<option value="">Select User...</option>';
-                data.values.forEach(user => {
-                    let opt = document.createElement('option');
-                    opt.value = user.id;
-                    opt.innerHTML = user.name;
-                    select.appendChild(opt);
-                });
+// 2. Fetch the data using a broader AQL
+AP.request({
+    // Changed "users" to "Users" and added a console log for debugging
+    url: '/rest/assets/1.0/object/navlist/aql?ql=objectType = "Users"', 
+    type: 'GET',
+    success: function(responseText) {
+        const data = JSON.parse(responseText);
+        const select = document.querySelector('.user-select');
+        
+        console.log("Assets Data Received:", data); // Check this in your browser console (F12)
+
+        if (!data.values || data.values.length === 0) {
+            select.innerHTML = '<option>No Users Found in Schema</option>';
+        } else {
+            select.innerHTML = '<option value="">Select User...</option>';
+            data.values.forEach(user => {
+                let opt = document.createElement('option');
+                opt.value = user.id;
+                // 'label' is the name of the object in Assets
+                opt.innerHTML = user.label; 
+                select.appendChild(opt);
             });
-            setHeight(); // Resize after data loads
-        },
-        error: function(xhr) {
-            console.error("Assets Load Failed. Check Jira Allowlist for mfisher1980.github.io");
         }
-    });
-}
+    },
+    error: function(xhr) {
+        document.querySelector('.user-select').innerHTML = '<option>Access Denied</option>';
+    }
+});
 
 // 3. Add row and auto-resize
 document.getElementById('add-row').onclick = () => {
