@@ -1,13 +1,12 @@
-// 1. Force the sidebar to be 800px tall so it's not a tiny scroll box
-function resizeSidebar() {
-    if (window.AP && AP.resize) {
-        AP.resize('100%', '800px'); 
-    }
+// 1. Force the sidebar to be 800px tall immediately
+if (window.AP) {
+    AP.resize('100%', '800px');
 }
 
-// 2. Load the Arrow Assets
 function loadUsers() {
-    // AP.request bypasses the need for an Allowlist
+    console.log("Using AP.request to bypass CSP...");
+    
+    // We MUST use AP.request. A standard 'fetch' or '$.ajax' will trigger the CSP block you see.
     AP.request({
         url: '/rest/assets/1.0/object/navlist/aql?ql=objectType = "Users"',
         type: 'GET',
@@ -25,31 +24,23 @@ function loadUsers() {
                     select.appendChild(opt);
                 });
             } else {
-                select.innerHTML = '<option>No objects in Users type</option>';
+                select.innerHTML = '<option>No Users in Schema</option>';
             }
-            resizeSidebar();
         },
         error: function(xhr) {
-            console.error("Asset fetch failed", xhr);
-            document.querySelector('.user-select').innerHTML = '<option>Auth Error</option>';
+            // If this fails, it's a permission issue inside Assets, not a CSP issue
+            console.error("Asset fetch failed via Bridge", xhr);
+            document.querySelector('.user-select').innerHTML = '<option>Bridge Error</option>';
         }
     });
 }
 
-// 3. The Handshake
+// 2. Ensure we wait for the Jira 'Handshake'
 if (window.AP) {
     AP.events.on('joined', function() {
-        resizeSidebar();
         loadUsers();
     });
+} else {
+    // Fallback for if you are viewing the GitHub page directly
+    window.onload = loadUsers;
 }
-
-// 3. Add row and auto-resize
-document.getElementById('add-row').onclick = () => {
-    const tbody = document.getElementById('rows');
-    const newRow = document.querySelector('.staff-row').cloneNode(true);
-    tbody.appendChild(newRow);
-    loadUsers();
-};
-
-window.onload = loadUsers;
