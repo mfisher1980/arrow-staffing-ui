@@ -1,13 +1,23 @@
+// 1. Tell Jira to make the sidebar box as long as the content
+function setHeight() {
+    if (window.AP) {
+        AP.resize('100%', '600px'); // Forces it to be 600px tall instead of a tiny box
+    }
+}
+
+// 2. Load the users
 function loadUsers() {
-    // Uses the Atlassian Bridge to fetch users from your Arrow schema
+    console.log("Fetching Arrow Schema users...");
+    
     AP.request({
+        // Updated URL to the most direct Assets AQL endpoint
         url: '/rest/assets/1.0/object/navlist/aql?ql=objectType = "users"',
         type: 'GET',
         success: function(responseText) {
             const data = JSON.parse(responseText);
-            const dropdowns = document.querySelectorAll('.user-select');
+            const selects = document.querySelectorAll('.user-select');
             
-            dropdowns.forEach(select => {
+            selects.forEach(select => {
                 select.innerHTML = '<option value="">Select User...</option>';
                 data.values.forEach(user => {
                     let opt = document.createElement('option');
@@ -16,20 +26,20 @@ function loadUsers() {
                     select.appendChild(opt);
                 });
             });
+            setHeight(); // Resize after data loads
         },
         error: function(xhr) {
-            console.error("Jira security blocked the request. Check your Allowlist settings.");
+            console.error("Assets Load Failed. Check Jira Allowlist for mfisher1980.github.io");
         }
     });
 }
 
-// Add a new row when the button is clicked
+// 3. Add row and auto-resize
 document.getElementById('add-row').onclick = () => {
     const tbody = document.getElementById('rows');
     const newRow = document.querySelector('.staff-row').cloneNode(true);
     tbody.appendChild(newRow);
-    loadUsers(); // Refresh the dropdowns for the new row
+    loadUsers();
 };
 
-// Start the load process
 window.onload = loadUsers;
