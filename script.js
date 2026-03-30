@@ -1,5 +1,5 @@
-// 1. Load users from Arrow Schema
 function loadUsers() {
+    // Uses the Atlassian Bridge to fetch users from your Arrow schema
     AP.request({
         url: '/rest/assets/1.0/object/navlist/aql?ql=objectType = "users"',
         type: 'GET',
@@ -16,36 +16,20 @@ function loadUsers() {
                     select.appendChild(opt);
                 });
             });
+        },
+        error: function(xhr) {
+            console.error("Jira security blocked the request. Check your Allowlist settings.");
         }
     });
 }
 
-// 2. Add dynamic rows
+// Add a new row when the button is clicked
 document.getElementById('add-row').onclick = () => {
-    const row = document.querySelector('.staff-row').cloneNode(true);
-    document.getElementById('rows').appendChild(row);
+    const tbody = document.getElementById('rows');
+    const newRow = document.querySelector('.staff-row').cloneNode(true);
+    tbody.appendChild(newRow);
+    loadUsers(); // Refresh the dropdowns for the new row
 };
 
-// 3. Save to Assets (Replace ATTR_ID with your 'Current Load' ID)
-document.getElementById('save-btn').onclick = () => {
-    const rows = document.querySelectorAll('.staff-row');
-    rows.forEach(row => {
-        const id = row.querySelector('.user-select').value;
-        const val = row.querySelector('.percent-input').value;
-        
-        if (id) {
-            AP.request({
-                url: `/rest/assets/1.0/object/${id}`,
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    attributes: [{ objectTypeAttributeId: 'YOUR_ATTR_ID', objectAttributeValues: [{ value: val }] }]
-                })
-            });
-        }
-    });
-    alert("Staffing updated!");
-};
-
-// Start the load
+// Start the load process
 window.onload = loadUsers;
