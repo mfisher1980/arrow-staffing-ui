@@ -1,36 +1,48 @@
-// 1. Force the sidebar to be 600px tall (No more tiny scroll box!)
-if (window.AP) {
-    AP.resize('100%', '600px'); 
+// 1. Force the sidebar to be 800px tall so it's not a tiny scroll box
+function resizeSidebar() {
+    if (window.AP && AP.resize) {
+        AP.resize('100%', '800px'); 
+    }
 }
 
-// 2. Fetch the data using a broader AQL
-AP.request({
-    // Changed "users" to "Users" and added a console log for debugging
-    url: '/rest/assets/1.0/object/navlist/aql?ql=objectType = "Users"', 
-    type: 'GET',
-    success: function(responseText) {
-        const data = JSON.parse(responseText);
-        const select = document.querySelector('.user-select');
-        
-        console.log("Assets Data Received:", data); // Check this in your browser console (F12)
-
-        if (!data.values || data.values.length === 0) {
-            select.innerHTML = '<option>No Users Found in Schema</option>';
-        } else {
+// 2. Load the Arrow Assets
+function loadUsers() {
+    // AP.request bypasses the need for an Allowlist
+    AP.request({
+        url: '/rest/assets/1.0/object/navlist/aql?ql=objectType = "Users"',
+        type: 'GET',
+        success: function(responseText) {
+            const data = JSON.parse(responseText);
+            const select = document.querySelector('.user-select');
+            
             select.innerHTML = '<option value="">Select User...</option>';
-            data.values.forEach(user => {
-                let opt = document.createElement('option');
-                opt.value = user.id;
-                // 'label' is the name of the object in Assets
-                opt.innerHTML = user.label; 
-                select.appendChild(opt);
-            });
+            
+            if (data.values && data.values.length > 0) {
+                data.values.forEach(user => {
+                    let opt = document.createElement('option');
+                    opt.value = user.id;
+                    opt.innerHTML = user.label; 
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option>No objects in Users type</option>';
+            }
+            resizeSidebar();
+        },
+        error: function(xhr) {
+            console.error("Asset fetch failed", xhr);
+            document.querySelector('.user-select').innerHTML = '<option>Auth Error</option>';
         }
-    },
-    error: function(xhr) {
-        document.querySelector('.user-select').innerHTML = '<option>Access Denied</option>';
-    }
-});
+    });
+}
+
+// 3. The Handshake
+if (window.AP) {
+    AP.events.on('joined', function() {
+        resizeSidebar();
+        loadUsers();
+    });
+}
 
 // 3. Add row and auto-resize
 document.getElementById('add-row').onclick = () => {
